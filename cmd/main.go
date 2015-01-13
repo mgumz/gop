@@ -14,7 +14,7 @@ var Usage = func(msg string) {
 	if msg != "" {
 		fmt.Fprintf(os.Stderr, "ERROR: %v\n\n", msg)
 	}
-	fmt.Fprintf(os.Stderr, "Usage of %s: golo mycommand [custom args]\n\n", path.Base(os.Args[0]))
+	fmt.Fprintf(os.Stderr, "Usage of %s\n\n    golo command [arguments]%v\n", path.Base(os.Args[0]), doc)
 	flag.PrintDefaults()
 	os.Exit(1)
 }
