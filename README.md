@@ -12,6 +12,12 @@ While the project gilo project was an inspiration I like golo as a name to mean
 GO LOcal.  Where lo is already an alias for local.
 
 
+Usage
+-----
+
+golo mycommand custom args
+
+
 LICENSE
 -------
 
