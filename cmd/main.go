@@ -24,7 +24,7 @@ func main() {
 	if help {
 		Usage("")
 	}
-	// golo mycommand custom args
+	// golo command [arguments]
 }
 
 func init() {
