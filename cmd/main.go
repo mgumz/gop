@@ -12,7 +12,7 @@ import (
 
 var (
 	help     bool
-	commands = ",build,clean,env,fix,fmt,generate,get,install,list,run,test,tool,version,vet,"
+	commands = ",build,clean,env,fix,fmt,generate,get,help,install,list,run,test,tool,version,vet,"
 )
 
 // Usage function to helping the command line
