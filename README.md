@@ -1,7 +1,7 @@
 golo
 ====
 
-Inspired by (goli)[https://bitbucket.org/jatone/gilo] (reverse search the path) looking for a .gopath file in order
+Inspired by [goli](https://bitbucket.org/jatone/gilo) (reverse search the path) looking for a .gopath file in order
 to set Go's GOPATH and then execute the command.
 
 In this implementation I am going to eliminate the use of all 3rd party libs. Given
