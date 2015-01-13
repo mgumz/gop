@@ -31,6 +31,28 @@ func main() {
 	if help {
 		Usage("")
 	}
+	// start looking for a '.gopath' file
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Error getting current dir %v\n", err)
+		return
+	}
+	found := false
+	for dir != "/" {
+		if _, err := os.Stat(dir + "/.gopath"); err == nil {
+			found = true
+			break
+		} else if !os.IsNotExist(err) {
+			fmt.Printf("Error getting current dir %v\n", err)
+			return
+		}
+		dir = path.Dir(dir)
+		err = os.Chdir(dir)
+	}
+	if found {
+		os.Setenv("GOPATH", dir)
+	}
+
 	// golo command [arguments]
 	cmdargs := strings.Join(flag.Args(), " ")
 	if strings.Index(commands, ","+flag.Arg(0)+",") >= 0 {
