@@ -64,14 +64,13 @@ func main() {
 		fmt.Printf("Error getting current dir %v\n", err)
 		return
 	}
-	found := false
+	gopath := ""
+	vendorpath := ""
 	for dir != "/" {
-		if _, err := exists(dir, vendor); err == nil {
-			found = true
-			break
-		} else if _, err := exists(dir, ".gopath"); err == nil {
-			found = true
-			break
+		if _, err := exists(dir, vendor); vendorpath == "" && err == nil {
+			vendorpath = dir + "/" + vendor
+		} else if _, err := exists(dir, ".gopath"); gopath == "" && err == nil {
+			gopath = dir
 		} else if !os.IsNotExist(err) {
 			fmt.Printf("Error getting current dir %v\n", err)
 			return
@@ -79,8 +78,16 @@ func main() {
 		dir = path.Dir(dir)
 		err = os.Chdir(dir)
 	}
-	if found {
-		os.Setenv("GOPATH", dir)
+	envpath := ""
+	if vendorpath != "" {
+		envpath += ":" + vendorpath
+	}
+	if gopath != "" {
+		envpath += ":" + gopath
+	}
+	if envpath != "" {
+		envpath = envpath[1:]
+		os.Setenv("GOPATH", envpath)
 	}
 
 	// golo command [arguments]
