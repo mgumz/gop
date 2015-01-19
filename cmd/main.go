@@ -12,7 +12,11 @@ import (
 
 var (
 	help     bool
+	fversion bool
 	commands = ",build,clean,env,fix,fmt,generate,get,help,install,list,run,test,tool,version,vet,"
+	vendor   string
+	commitid string
+	version  string
 )
 
 // Usage function to helping the command line
@@ -25,11 +29,34 @@ var Usage = func(msg string) {
 	os.Exit(1)
 }
 
+var Version = func(msg string) {
+	doc :=
+		`golo
+Version: %s
+Commit ID: %s
+`
+	fmt.Fprintf(os.Stderr, doc, version, commitid)
+	os.Exit(1)
+}
+
+func exists(dir, base string) (found bool, err error) {
+	if base == "" {
+		return false, fmt.Errorf("skip")
+	}
+	if _, err = os.Stat(dir + "/" + base); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func main() {
 	var err error
 	flag.Parse()
 	if help {
 		Usage("")
+	}
+	if fversion {
+		Version("")
 	}
 	// start looking for a '.gopath' file
 	dir, err := os.Getwd()
@@ -39,7 +66,10 @@ func main() {
 	}
 	found := false
 	for dir != "/" {
-		if _, err := os.Stat(dir + "/.gopath"); err == nil {
+		if _, err := exists(dir, vendor); err == nil {
+			found = true
+			break
+		} else if _, err := exists(dir, ".gopath"); err == nil {
 			found = true
 			break
 		} else if !os.IsNotExist(err) {
@@ -81,5 +111,7 @@ func main() {
 }
 
 func init() {
-	flag.BoolVar(&help, "help", false, "display this help scre")
+	flag.BoolVar(&help, "help", false, "display this help screeen")
+	flag.BoolVar(&fversion, "version", false, "display version info and exit")
+	flag.StringVar(&vendor, "vendor", "", "look for vendor folder too")
 }
