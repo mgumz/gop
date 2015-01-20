@@ -13,7 +13,6 @@ import (
 var (
 	help     bool
 	fversion bool
-	commands = ",build,clean,env,fix,fmt,generate,get,help,install,list,run,test,tool,version,vet,"
 	vendor   string
 	commitid string
 	version  string
@@ -92,7 +91,9 @@ func main() {
 
 	// golo command [arguments]
 	cmdargs := strings.Join(flag.Args(), " ")
-	if strings.Index(commands, ","+flag.Arg(0)+",") >= 0 {
+	switch flag.Arg(0) {
+	default:
+	case "build", "clean", "env", "fix", "fmt", "generate", "get", "help", "install", "list", "run", "test", "tool", "version", "vet":
 		cmdargs = "go " + cmdargs
 	}
 
