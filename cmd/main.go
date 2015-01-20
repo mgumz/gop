@@ -7,15 +7,17 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
 var (
-	help     bool
-	fversion bool
-	vendor   string
-	commitid string
-	version  string
+	help          bool
+	fversion      bool
+	vendor        string
+	commitid      string
+	version       string
+	gopath_marker string
 )
 
 // Usage function to helping the command line
@@ -42,14 +44,15 @@ func exists(dir, base string) (found bool, err error) {
 	if base == "" {
 		return false, fmt.Errorf("skip")
 	}
-	if _, err = os.Stat(dir + "/" + base); err != nil {
+	if _, err = os.Stat(filepath.Join(dir, base)); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
 func main() {
-	var err error
+	var gopath, vendorpath string
+
 	flag.Parse()
 	if help {
 		Usage("")
@@ -57,32 +60,40 @@ func main() {
 	if fversion {
 		Version("")
 	}
+
 	// start looking for a '.gopath' file
 	dir, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Error getting current dir %v\n", err)
 		return
 	}
-	gopath := ""
-	vendorpath := ""
-	for dir != "/" {
+	dir, err = filepath.Abs(dir)
+	if err != nil {
+		fmt.Printf("Error making %q absolute %v\n", dir, err)
+		return
+	}
+
+	// filepath.Clean(): The returned path ends in a slash only if it
+	// represents a root directory, such as "/" on Unix or `C:\` on Windows.
+	dir = filepath.Clean(dir)
+	for dir[len(dir)-1] != filepath.Separator {
 		if _, err := exists(dir, vendor); vendorpath == "" && err == nil {
-			vendorpath = dir + "/" + vendor
-		} else if _, err := exists(dir, ".gopath"); gopath == "" && err == nil {
+			vendorpath = filepath.Join(dir, vendor)
+		} else if _, err := exists(dir, gopath_marker); gopath == "" && err == nil {
 			gopath = dir
 		} else if !os.IsNotExist(err) {
 			fmt.Printf("Error getting current dir %v\n", err)
 			return
 		}
-		dir = path.Dir(dir)
-		err = os.Chdir(dir)
+		dir = filepath.Clean(filepath.Dir(dir))
 	}
+
 	envpath := ""
 	if vendorpath != "" {
-		envpath += ":" + vendorpath
+		envpath += string(filepath.ListSeparator) + vendorpath
 	}
 	if gopath != "" {
-		envpath += ":" + gopath
+		envpath += string(filepath.ListSeparator) + gopath
 	}
 	if envpath != "" {
 		envpath = envpath[1:]
@@ -122,4 +133,5 @@ func init() {
 	flag.BoolVar(&help, "help", false, "display this help screeen")
 	flag.BoolVar(&fversion, "version", false, "display version info and exit")
 	flag.StringVar(&vendor, "vendor", "", "look for vendor folder too")
+	flag.StringVar(&gopath_marker, "gopath", ".gopath", "look for file marking the GOPATH folder")
 }
