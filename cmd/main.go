@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"os"
@@ -109,24 +108,12 @@ func main() {
 	}
 
 	cmd := exec.Command("/bin/bash", "-c", cmdargs)
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		fmt.Printf("Error creating pipe %v\n", err)
-		return
-	}
-	if err = cmd.Start(); err != nil {
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err = cmd.Run(); err != nil {
 		fmt.Printf("Error starting the command; %v\n", err)
 		return
 	}
-	r := bufio.NewReader(stdout)
-	for err == nil {
-		if line, _, err := r.ReadLine(); err == nil {
-			fmt.Println(string(line))
-			continue
-		}
-		break
-	}
-	cmd.Wait()
 }
 
 func init() {
