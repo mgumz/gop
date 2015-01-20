@@ -1,9 +1,6 @@
 package main
 
-var doc string
-
-func init() {
-	doc = `
+const doc = `
 
 The commands are:
 
@@ -36,4 +33,3 @@ testfunc    description of testing functions
 
 Use "golo help [topic]" for more information about that topic.
 `
-}
