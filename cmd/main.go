@@ -107,7 +107,8 @@ func main() {
 		cmdargs = "go " + cmdargs
 	}
 
-	cmd := exec.Command("/bin/bash", "-c", cmdargs)
+	shell, cflag := get_shell()
+	cmd := exec.Command(shell, cflag, cmdargs)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err = cmd.Run(); err != nil {
