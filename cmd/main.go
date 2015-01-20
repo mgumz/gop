@@ -11,11 +11,13 @@ import (
 )
 
 var (
-	help          bool
-	fversion      bool
-	vendor        string
-	commitid      string
-	version       string
+	help     bool
+	fversion bool
+	vendor   string
+	commitid string
+	version  string
+
+	verbose       bool
 	gopath_marker string
 )
 
@@ -78,11 +80,14 @@ func main() {
 	for dir[len(dir)-1] != filepath.Separator {
 		if _, err := exists(dir, vendor); vendorpath == "" && err == nil {
 			vendorpath = filepath.Join(dir, vendor)
+			if verbose {
+				fmt.Printf("golo picked vendorpath: %q\n", vendorpath)
+			}
 		} else if _, err := exists(dir, gopath_marker); gopath == "" && err == nil {
 			gopath = dir
-		} else if !os.IsNotExist(err) {
-			fmt.Printf("Error getting current dir %v\n", err)
-			return
+			if verbose {
+				fmt.Printf("golo picked gopath: %q, found %q\n", gopath, filepath.Join(gopath, gopath_marker))
+			}
 		}
 		dir = filepath.Clean(filepath.Dir(dir))
 	}
@@ -96,6 +101,7 @@ func main() {
 	}
 	if envpath != "" {
 		envpath = envpath[1:]
+		os.Setenv("GOLO_MARKER", filepath.Join(envpath, gopath_marker))
 		os.Setenv("GOPATH", envpath)
 	}
 
@@ -111,6 +117,17 @@ func main() {
 	cmd := exec.Command(shell, cflag, cmdargs)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
+
+	if verbose {
+		fmt.Printf("golo cmd.path: %q\n", cmd.Path)
+		fmt.Printf("golo cmd.args: %v\n", cmd.Args)
+		fmt.Printf("golo cmd.dir: %q\n", cmd.Dir)
+		for i := range cmd.Env {
+			fmt.Printf("golo cmd.env: %s\n", cmd.Env[i])
+		}
+	}
+
 	if err = cmd.Run(); err != nil {
 		fmt.Printf("Error starting the command; %v\n", err)
 		return
@@ -121,5 +138,7 @@ func init() {
 	flag.BoolVar(&help, "help", false, "display this help screeen")
 	flag.BoolVar(&fversion, "version", false, "display version info and exit")
 	flag.StringVar(&vendor, "vendor", "", "look for vendor folder too")
+
+	flag.BoolVar(&verbose, "verbose", false, "be more verbose")
 	flag.StringVar(&gopath_marker, "gopath", ".gopath", "look for file marking the GOPATH folder")
 }
