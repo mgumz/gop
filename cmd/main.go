@@ -17,6 +17,7 @@ var (
 	commitid string
 	version  string
 
+	shell         string
 	verbose       bool
 	gopath_marker string
 )
@@ -113,7 +114,8 @@ func main() {
 		cmdargs = "go " + cmdargs
 	}
 
-	shell, cflag := get_shell()
+	var cflag string
+	shell, cflag = get_shell(shell)
 	cmd := exec.Command(shell, cflag, cmdargs)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -139,6 +141,7 @@ func init() {
 	flag.BoolVar(&fversion, "version", false, "display version info and exit")
 	flag.StringVar(&vendor, "vendor", "", "look for vendor folder too")
 
+	flag.StringVar(&shell, "shell", "", "shell to use to spawn 'go'")
 	flag.BoolVar(&verbose, "verbose", false, "be more verbose")
 	flag.StringVar(&gopath_marker, "gopath", ".gopath", "look for file marking the GOPATH folder")
 }
