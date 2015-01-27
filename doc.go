@@ -19,7 +19,7 @@ tool        run specified go tool
 version     print Go version
 vet         run go tool vet on packages
 
-Use "golo help [command]" for more information about a command.
+Use "gop help [command]" for more information about a command.
 
 Additional help topics:
 
@@ -31,5 +31,5 @@ packages    description of package lists
 testflag    description of testing flags
 testfunc    description of testing functions
 
-Use "golo help [topic]" for more information about that topic.
+Use "gop help [topic]" for more information about that topic.
 `

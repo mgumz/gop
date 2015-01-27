@@ -1,24 +1,26 @@
-golo
+gop
 ====
 
-Inspired by [goli](https://bitbucket.org/jatone/gilo) (reverse search the path) looking for a .gopath file in order
-to set Go's GOPATH and then execute the command.
+*gop* looks recursively for a folder marked by a file (default: ".gopath")
+and sets Go's GOPATH environment to that folder. It then executes the
+the given command.
 
-In this implementation I am going to eliminate the use of all 3rd party libs. Given
-this function's usefulness I do not believe there is a good reason to import
-as many dependencies as the gilo developer did.
-
-While the project gilo project was an inspiration I like golo as a name to mean
-GO LOcal.  Where lo is already an alias for local.
-
+*gop* is a fork of [golo][golo] by Richard Bucker (which itself got inspired
+by [goli][goli], written by James Lawrence)
 
 Usage
 -----
 
-golo mycommand custom args
-
+    $> cd ~/my_workspace
+    $> touch .gopath
+    $> cd src/deep/into/my/project
+    $> gop -verbose build -v
 
 LICENSE
 -------
 
 MIT
+
+
+[golo]: https://bitbucket.org/oneoffcode/golo
+[goli]: https://bitbucket.org/jatone/gilo

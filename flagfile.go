@@ -13,9 +13,9 @@ import (
 func default_flagfile() string {
 	home, _ := homedir()
 	if runtime.GOOS == "windows" {
-		return filepath.Join(home, "_golorc")
+		return filepath.Join(home, "_"+NAME+"rc")
 	}
-	return filepath.Join(home, ".golorc")
+	return filepath.Join(home, "."+NAME+"rc")
 }
 
 // read file 'path', line by line. the lines are used to
@@ -52,7 +52,7 @@ func read_flagfile(to *flag.FlagSet, path string, flags []string) error {
 func homedir() (string, error) {
 	user, err := user.Current()
 	if err != nil {
-		return "", fmt.Errorf("Warning: can't detect current user: %v\n", err)
+		return "", fmt.Errorf("warning: can't detect current user: %v\n", err)
 	}
 	return user.HomeDir, nil
 }

@@ -8,12 +8,19 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
+)
+
+const (
+	NAME   = "gop"
+	MARKER = ".gopath"
 )
 
 var (
 	_VERSION_MAJOR = "1"
 	_VERSION_MINOR = "x"
+	_DATE          = "unknown"
 	_COMMIT_ID     = "unknown"
 )
 
@@ -28,7 +35,7 @@ func main() {
 			vendor       string
 			verbose      bool
 			show_version bool
-		}{marker: ".gopath"}
+		}{marker: MARKER}
 	)
 	flag.BoolVar(&cli.show_version, "version", cli.show_version, "display version info and exit")
 	flag.StringVar(&cli.vendor, "vendor", cli.vendor, "look for vendor folder too")
@@ -46,24 +53,24 @@ func main() {
 
 	if cli.rcfile != "" {
 		if err := read_flagfile(flag.CommandLine, cli.rcfile, os.Args[1:]); err != nil {
-			// a missing ~/.golorc is not an error
+			// a missing default_flagfile() is not an error
 			if !(os.IsNotExist(err) && cli.rcfile == default_flagfile()) {
-				os_exit(1, os.Stderr, fmt.Sprintf("Error parsing %q; %v\n", cli.rcfile, err))
+				os_exit(1, os.Stderr, fmt.Sprintf("error parsing %q; %v\n", cli.rcfile, err))
 			}
 		}
 		if cli.verbose {
-			fmt.Printf("golo used flag file: %v\n", cli.rcfile)
+			fmt.Printf("%s used flag file: %v\n", NAME, cli.rcfile)
 		}
 	}
 
 	// start looking for the marker filec
 	dir, err := os.Getwd()
 	if err != nil {
-		os_exit(2, os.Stderr, fmt.Sprintf("Error getting current dir %v\n", err))
+		os_exit(2, os.Stderr, fmt.Sprintf("error getting current dir %v\n", err))
 	}
 	dir, err = filepath.Abs(dir)
 	if err != nil {
-		os_exit(2, os.Stderr, fmt.Sprintf("Error making %q absolute; %v\n", dir, err))
+		os_exit(2, os.Stderr, fmt.Sprintf("error making %q absolute; %v\n", dir, err))
 	}
 
 	// filepath.Clean(): The returned path ends in a slash only if it
@@ -73,12 +80,12 @@ func main() {
 		if _, err := exists(dir, cli.vendor); vendorpath == "" && err == nil {
 			vendorpath = filepath.Join(dir, cli.vendor)
 			if cli.verbose {
-				fmt.Printf("golo picked vendorpath: %q\n", vendorpath)
+				fmt.Printf("%s picked vendorpath: %q\n", NAME, vendorpath)
 			}
 		} else if _, err := exists(dir, cli.marker); gopath == "" && err == nil {
 			gopath = dir
 			if cli.verbose {
-				fmt.Printf("golo picked gopath: %q, found %q\n", gopath, filepath.Join(gopath, cli.marker))
+				fmt.Printf("%s picked gopath: %q, found %q\n", NAME, gopath, filepath.Join(gopath, cli.marker))
 			}
 		}
 		dir = filepath.Clean(filepath.Dir(dir))
@@ -93,14 +100,16 @@ func main() {
 	}
 	if envpath != "" {
 		envpath = envpath[1:]
-		os.Setenv("GOLO_MARKER", filepath.Join(envpath, cli.marker))
+		os.Setenv("GOP_MARKER", filepath.Join(envpath, cli.marker))
 		os.Setenv("GOPATH", envpath)
 	}
 
 	// golo command [arguments]
 	cmdargs := strings.Join(flag.Args(), " ")
 	switch flag.Arg(0) {
-	case "build", "clean", "env", "fix", "fmt", "generate", "get", "help", "install", "list", "run", "test", "tool", "version", "vet":
+	case "build", "clean", "env", "fix", "fmt", "generate", "get",
+		"help", "install", "list", "run", "test", "tool",
+		"version", "vet":
 		cmdargs = "go " + cmdargs
 	}
 
@@ -112,35 +121,37 @@ func main() {
 	cmd.Env = os.Environ()
 
 	if cli.verbose {
-		fmt.Printf("golo cmd.path: %q\n", cmd.Path)
-		fmt.Printf("golo cmd.args: %v\n", cmd.Args)
-		fmt.Printf("golo cmd.dir: %q\n", cmd.Dir)
+		fmt.Printf("%s cmd.path: %q\n", NAME, cmd.Path)
+		fmt.Printf("%s cmd.args: %v\n", NAME, cmd.Args)
+		fmt.Printf("%s cmd.dir: %q\n", NAME, cmd.Dir)
 		for i := range cmd.Env {
-			fmt.Printf("golo cmd.env: %s\n", cmd.Env[i])
+			fmt.Printf("%s cmd.env: %s\n", NAME, cmd.Env[i])
 		}
 	}
 
 	if err = cmd.Run(); err != nil {
-		os_exit(3, os.Stderr, fmt.Sprintf("Error statring the command; %v\n", err))
+		os_exit(3, os.Stderr, fmt.Sprintf("error running the command; %v\n", err))
 	}
 }
 
 // Usage function to helping the command line
 func usage(msg string) {
 	if msg != "" {
-		fmt.Fprintf(os.Stderr, "ERROR: %v\n\n", msg)
+		fmt.Fprintf(os.Stderr, "error: %v\n\n", msg)
 	}
-	fmt.Fprintf(os.Stderr, "Usage of %s\n\n    golo command [arguments]%v\n", path.Base(os.Args[0]), doc)
+	fmt.Fprintf(os.Stderr, "usage of %s\n\n    %s command [arguments]%v\n", path.Base(os.Args[0]), NAME, doc)
 	flag.PrintDefaults()
-	os.Exit(1)
+	os.Exit(0)
 }
 
 func print_version() {
-	doc := `golo
-Version: %s.%s
-Commit ID: %s
-`
-	fmt.Fprintln(os.Stderr, fmt.Sprintf(doc, _VERSION_MAJOR, _VERSION_MINOR, _COMMIT_ID))
+	fmt.Fprintf(os.Stderr,
+		"%s\nversion: %s.%s\ngit-commit: %s\ndate: %s\ngo: %s\n\n",
+		NAME,
+		_VERSION_MAJOR, _VERSION_MINOR,
+		_COMMIT_ID,
+		_DATE,
+		runtime.GOOS+"-"+runtime.Version())
 }
 
 func os_exit(code int, writer io.Writer, msg string) {
